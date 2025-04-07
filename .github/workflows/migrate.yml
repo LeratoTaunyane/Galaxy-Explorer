@@ -1,0 +1,38 @@
+name: Run EF Core Database Migrations
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '8.0' 
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Set up PostgreSQL
+      uses: docker://postgres:latest
+      env:
+        POSTGRES_DB: ${{ secrets.PG_DB }}
+        POSTGRES_USER: ${{ secrets.PG_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+      with:
+        entrypoint: "/bin/bash -c 'while ! pg_isready -h localhost -p 5432; do sleep 1; done; exec docker-entrypoint.sh postgres'"
+    
+    - name: Run EF Core Migrations
+      run: dotnet ef database update --project YourProjectName --startup-project YourProjectName
+      env:
+        PG_HOST: localhost
+        PG_PORT: 5432
+        PG_DB: ${{ secrets.PG_DB }}
+        PG_USER: ${{ secrets.PG_USER }}
+        PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+    
+    - name: Success
+      run: echo "Migrations successfully applied!"
