@@ -1,37 +1,37 @@
-name: Run PostgreSQL Database Setup and Migrations
+name: Run PostgreSQL Database Migrations
 
 on:
   push:
     branches:
-      - main  # Trigger on push to the main branch (adjust to your default branch)
+      - main  
   pull_request:
     branches:
       - main  
 
 jobs:
-  setup-and-migrate:
+  migrate:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Set up PostgreSQL using Docker
-      uses: docker://postgres:latest
-      env:
-        POSTGRES_DB: ${{ secrets.PG_DB }}
-        POSTGRES_USER: ${{ secrets.PG_USER }}
-        POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
-      with:
-        entrypoint: "/bin/bash -c 'while ! pg_isready -h localhost -p 5432; do sleep 1; done; exec docker-entrypoint.sh postgres'"
+    - name: Checkout code
+      uses: actions/checkout@v2
     
-    - name: Run SQL Migration Scripts (Optional)
+    - name: Set up PostgreSQL (local or external)
       run: |
-        # Assuming you have SQL migration files in the `migrations` folder
-        psql -h localhost -U ${{ secrets.PG_USER }} -d ${{ secrets.PG_DB }} -f ./migrations/your_migration_script.sql
+        echo "Setting up PostgreSQL connection"
+    
+    - name: Run SQL Migration Scripts
+      run: |
+        for migration in ./migrations/*.sql; do
+          echo "Running migration: $migration"
+          psql -h ${{ secrets.PG_HOST }} -U ${{ secrets.PG_USER }} -d ${{ secrets.PG_DB }} -a -f $migration
+        done
       env:
-        PG_HOST: localhost
+        PG_HOST: ${{ secrets.PG_HOST }}
         PG_PORT: 5432
         PG_DB: ${{ secrets.PG_DB }}
         PG_USER: ${{ secrets.PG_USER }}
         PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
-    
+
     - name: Success
-      run: echo "Database migration and setup completed successfully!"
+      run: echo "Database migrations completed successfully!"
