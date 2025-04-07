@@ -1,5 +1,11 @@
 name: Run EF Core Database Migrations
-
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch (adjust to your default branch)
+  pull_request:
+    branches:
+      - main  # Trigger on pull request targeting main (optional)
 jobs:
   migrate:
     runs-on: ubuntu-latest
