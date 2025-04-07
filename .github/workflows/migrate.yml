@@ -1,28 +1,19 @@
-name: Run EF Core Database Migrations
+name: Run PostgreSQL Database Setup and Migrations
+
 on:
   push:
     branches:
       - main  # Trigger on push to the main branch (adjust to your default branch)
   pull_request:
     branches:
-      - main  # Trigger on pull request targeting main (optional)
+      - main  
+
 jobs:
-  migrate:
+  setup-and-migrate:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    
-    - name: Set up .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: '8.0' 
-    
-    - name: Restore dependencies
-      run: dotnet restore
-    
-    - name: Set up PostgreSQL
+    - name: Set up PostgreSQL using Docker
       uses: docker://postgres:latest
       env:
         POSTGRES_DB: ${{ secrets.PG_DB }}
@@ -31,8 +22,10 @@ jobs:
       with:
         entrypoint: "/bin/bash -c 'while ! pg_isready -h localhost -p 5432; do sleep 1; done; exec docker-entrypoint.sh postgres'"
     
-    - name: Run EF Core Migrations
-      run: dotnet ef database update --project YourProjectName --startup-project YourProjectName
+    - name: Run SQL Migration Scripts (Optional)
+      run: |
+        # Assuming you have SQL migration files in the `migrations` folder
+        psql -h localhost -U ${{ secrets.PG_USER }} -d ${{ secrets.PG_DB }} -f ./migrations/your_migration_script.sql
       env:
         PG_HOST: localhost
         PG_PORT: 5432
@@ -41,4 +34,4 @@ jobs:
         PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
     
     - name: Success
-      run: echo "Migrations successfully applied!"
+      run: echo "Database migration and setup completed successfully!"
