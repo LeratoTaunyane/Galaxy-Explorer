@@ -27,7 +27,8 @@ INSERT INTO Rank (title, description) VALUES
 ('Commander', 'Leads missions and oversees strategy'),
 ('Pilot', 'Navigates and flies spacecraft'),
 ('Engineer', 'Maintains and repairs technical systems'),
-('Scientist', 'Conducts research and analyzes mission data');
+('Scientist', 'Conducts research and analyzes mission data'),
+('Cadet', 'Entry-level rank for new recruits');
 
 INSERT INTO Status (name, description) VALUES
 ('Planned', 'Mission is being planned'),
